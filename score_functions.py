@@ -19,6 +19,14 @@ from data_processing import *
 
 
 def get_score_values(image, boxes, scale=0.25):
+    """ Return the ground truth score map and geometry map of an image and its bounding boxes.
+
+    :param image: Image.
+    :param boxes: Boxes.
+    :param scale: Scale factor to scale the boxes with. Required because the network outputs results scaled by
+                  factor of 0.25.
+    :return: Scaled score and geometry map.
+    """
 
     def get_bounding_rectangle(vertices):
         vertices_T = vertices.T
@@ -43,14 +51,34 @@ def get_score_values(image, boxes, scale=0.25):
     geo_map = np.zeros((int(scale * image.size[1]), int(scale * image.size[0]), 8), dtype=np.float64)
 
     for i in range(boxes.shape[0]):
+
         shrinked_box = np.around(scale * shrinked_boxes[i]).astype(np.int32)
         box = np.around(scale * boxes[i]).astype(np.int32)
-        cv2.fillPoly(score_map, [shrinked_box], 1)
+
+        mask  = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
+        cv2.fillPoly(mask, [shrinked_box], 1)
+        score_map += mask
+
+        idx = np.argwhere(mask == 1)
+
+        for x, y in idx:
+            geo_map[x, y] = get_distances((x, y), box)
+
+        """    
         bounding_rectangle = get_bounding_rectangle(box)
-        for x in np.arange(*bounding_rectangle[0]):
-            for y in np.arange(*bounding_rectangle[1]):
+        xmin, xmax = bounding_rectangle[0]
+        ymin, ymax = bounding_rectangle[1]
+        for x in np.arange(xmin, xmax):
+            for y in np.arange(ymin, ymax):
                 if score_map[x, y] == 1:
                     geo_map[x, y] = get_distances((x, y), box)
+        """
+    """
+    print("######## Score count ##########")
+    print("score: ", np.argwhere(score_map == 1.0).shape)
+    print("geo: ", np.argwhere(np.sum(np.abs(geo_map), axis=2) != 0.0).shape)
+    print("###############################")
+    """
 
     return score_map, geo_map
 
@@ -65,6 +93,12 @@ def restore_bounding_box(point, distances):
 
 
 def get_bounding_boxes_from_output(score_map, geo_map):
+    """ Recreate the boxes from score map and geometry map.
+
+    :param score_map: Score map.
+    :param geo_map: Geometry map.
+    :return: Restored boxes
+    """
     index_text = np.argwhere(score_map > 0.9)
     index_text = index_text[np.argsort(index_text[:, 0])]
 
@@ -91,20 +125,28 @@ if __name__ == "__main__":
 
     boxes, texts = parse_annotation(example_annotation)
 
-    example, boxes = resize_image_and_boxes(example, boxes, (512, 512))
-
+    example, boxes, scale = resize_image_and_boxes(example, boxes, (512, 512))
     score_map, geo_map = get_score_values(example, boxes, scale=0.25)
-    print("score_map ", score_map.shape)
-    print("geo_map ", geo_map.shape)
 
+
+    for i in range(128):
+        for j in range(128):
+            print(geo_map[i, j])
 
     restored_bboxes = get_bounding_boxes_from_output(score_map, geo_map)
 
+    ## Resize image and plot bounding boxes
     new_x = np.around(int(0.25 * example.size[0]))
     new_y = np.around(int(0.25 * example.size[1]))
-
     example = example.resize((new_x, new_y))
-
-    add_bounding_box(example, restored_bboxes[0:44], "blue")
+    add_bounding_box(example, restored_bboxes[:, :8], "red")
     plot_image(example, "restored_boxes")
-    print(restored_bboxes.shape)
+    example.show()
+
+    ## Resize bouning boxes and plot them
+    restored_boxes_scales = scale_bounding_box(restored_bboxes[:, :8], 4/scale)
+    restored_boxes_scales = restored_boxes_scales.reshape(-1, 8)
+    example = Image.open(example_image)
+    add_bounding_box(example, restored_boxes_scales, "red")
+    plot_image(example, "resized_boxes")
+    example.show()

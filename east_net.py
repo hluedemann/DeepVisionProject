@@ -10,6 +10,7 @@ from torchvision import transforms
 
 from data_processing import *
 from score_functions import *
+from data import *
 
 import os
 
@@ -22,45 +23,6 @@ cfg = {
 
 
 
-class ReceiptDataLoader(Dataset):
-
-    def __init__(self, dir, transform=None):
-        super().__init__()
-
-        self.names = os.listdir(dir)
-        self.images_names = self.get_files_with_extension(dir, self.names, ".jpg")
-        self.annotaion_names = self.get_files_with_extension(dir, self.names, ".txt")
-
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.images_names)
-
-    def __getitem__(self, idx):
-
-        image = Image.open(self.images_names[idx]).convert("RGB")
-        boxes, texts = parse_annotation(self.annotaion_names[idx])
-
-        image_resized, boxes = resize_image_and_boxes(image, boxes, (512, 512))
-
-        if self.transform is not None:
-            tensor = self.transform(image_resized)
-        else:
-            tensor = torch.from_numpy(np.array(image_resized)).permute(2, 0, 1)
-
-        score_map, geo_map = get_score_values(image_resized, boxes, scale=0.25)
-
-        return tensor, score_map, geo_map
-
-    def get_files_with_extension(self, dir, names, ext):
-
-        list = []
-        for name in names:
-            e = os.path.splitext(name)[1]
-            if e == ext:
-                list.append(name)
-        list.sort()
-        return [os.path.join(dir, n) for n in list]
 
 
 class Extractor(VGG):
@@ -194,6 +156,10 @@ if __name__ == "__main__":
 
             print(step)
             images, score_map, score_geo = data
+
+            print(images.shape)
+            print(score_map.shape)
+            print(score_geo.shape)
 
             # images = images.to(device)
 

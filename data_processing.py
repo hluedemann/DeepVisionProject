@@ -19,6 +19,11 @@ def clean_data(in_dir, out_dir):
 
 
 def parse_annotation(filename):
+    """ Parse the annotations of the data set.
+
+    :param filename: Folder containing the data
+    :return: Returns coordinates of boxes in the form [(x1, y1), (x2, y2) ..] and text for each box.
+    """
     f = open(filename, "r")
     lines = f.readlines()
     boxes = []
@@ -36,6 +41,11 @@ def parse_annotation(filename):
 
 
 def plot_image(image, outfile):
+    """ Plot PIL image.
+
+    :param image: Image to plot.
+    :param outfile: File name for saving.
+    """
     fig, ax = plt.subplots(1)
     plt.axis("off")
     ax.imshow(image)
@@ -44,17 +54,39 @@ def plot_image(image, outfile):
 
 
 def add_bounding_box(image, boxes, color):
+    """ Add the bouning boxes to an image.
+
+    :param image: Image to draw to.
+    :param boxes: Boxes to draw. Boxes can have the form [[(x1, y1), (x2, y2) ..],[..]] or
+                  [[x1, y1, x2, y2, ...], [...]. They can be either lists or numpy arrays.
+    :param color: Color to use for the boxes.
+    """
+
     draw = ImageDraw.Draw(image)
     for i in range(len(boxes)):
-        draw.polygon(boxes[i], outline=color)
+        if isinstance(boxes[i], np.ndarray):
+            draw.polygon(boxes[i].tolist(), outline=color)
+        elif isinstance(boxes[i], list):
+            draw.polygon(boxes[i], outline=color)
     del draw
 
 
 def dist(p1, p2):
+    """ Return the euclidean distance between two boints.
+
+    :param p1: First point.
+    :param p2: Second point.
+    :return: Euclidean distance.
+    """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
 
 def shrink_bbox(vertices):
+    """ Shrink the bounding box as described in the paper.
+
+    :param vertices: Box to shrink
+    :return: Shrinked box
+    """
     def move_points(p1, p2, r1, r2):
         x_dist = p2[0] - p1[0]
         y_dist = p2[1] - p1[1]
@@ -92,12 +124,18 @@ def shrink_bbox(vertices):
 
 
 def get_shrinked_bboxes(boxes):
+    """ Return shrinked boxes
+
+    :param boxes: Boxes to shrink.
+    :return: Shrinked boxes.
+    """
     shrinked_boxes = []
 
     for box in boxes:
         shrinked_boxes.append(shrink_bbox(box))
 
     return shrinked_boxes
+
 
 def convert_vert_list_to_tuple(vertices):
     vert = []
@@ -107,23 +145,36 @@ def convert_vert_list_to_tuple(vertices):
     return vert
 
 
+def scale_bounding_box(boxes, scale):
+    """ Scale bounding boxes.
+
+    :param boxes: Boxes to scale.
+    :param scale: Scale factor.
+    :return: Scaled boxes.
+    """
+    b = np.array(np.copy(boxes)).reshape((-1, 4, 2))
+
+    return np.around(b * scale)
+
+
 def resize_image_and_boxes(image, boxes, new_size):
+    """ Resizes image and boxes.
 
+    :param image: Image to resize.
+    :param boxes: Boxes to resize.
+    :param new_size: New size of the image.
+    :return: Resized image and boxes.
+    """
     resized_image = image.resize(new_size)
-    scale_x = resized_image.size[0] / image.size[0]
-    scale_y = resized_image.size[1] / image.size[1]
+    scale = np.zeros(2)
+    scale[0] = resized_image.size[0] / image.size[0]
+    scale[1] = resized_image.size[1] / image.size[1]
 
-    b = np.array(np.copy(boxes))
-
-    b[:, :, 0] = np.around(b[:, :, 0] * scale_x).astype(np.int32)
-    b[:, :, 1] = np.around(b[:, :, 1] * scale_y).astype(np.int32)
-
-    return resized_image, b
+    b = scale_bounding_box(boxes, scale)
+    return resized_image, b, scale
 
 
 if __name__ == "__main__":
-
-
     clean_data("data/task1_train", "data/train_data")
 
     example_image = "data/train_data/X00016469612.jpg"
@@ -131,13 +182,12 @@ if __name__ == "__main__":
 
     # Plot original boxes
     boxes, texts = parse_annotation(example_annotation)
-    print(boxes)
     example = Image.open(example_image)
     add_bounding_box(example, boxes, "blue")
     plot_image(example, "original_boxes")
 
     # Plot schinked bboxes
     shrinked_boxes = get_shrinked_bboxes(boxes)
-    print(shrinked_boxes)
     add_bounding_box(example, shrinked_boxes, "red")
     plot_image(example, "shrinked_boxes")
+    example.show()
