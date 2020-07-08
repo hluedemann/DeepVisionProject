@@ -30,9 +30,7 @@ class ReceiptDataLoaderRam(Dataset):
         print("Loading train data:")
         for idx in tqdm(range(len(self.images_names))):
 
-            image, score, geo = self.load_train_data(idx)
-
-
+            image, score, geo, boxes = self.load_train_data(idx)
 
             for i in range(128):
                 for j in range(128):
@@ -40,9 +38,17 @@ class ReceiptDataLoaderRam(Dataset):
                     if score[i, j] == 0.0:
                         continue
                     deltas = geo[i, j, :]
-                    self.shortest_edges[i, j] = self.get_shortest_edge(deltas)
-
-
+                    self.shortest_edges[idx, i, j] = self.get_shortest_edge(deltas)   ######### Todo: Check
+                    # print("shortest edge: ", self.shortest_edges[idx, i, j])
+                    """
+                    if self.shortest_edges[idx, i, j] == 0:
+                        print(f"deltas: {deltas}")
+                        print("no edge")
+                    else:
+                       print(f"right edge: {deltas}")
+                       print("shrtest edge: ", self.shortest_edges[idx, i, j])
+                    """
+            #break
             self.images[idx] = image
             self.scores[idx] = score
             self.geos[idx] = geo
@@ -51,9 +57,9 @@ class ReceiptDataLoaderRam(Dataset):
         return len(self.images_names)
 
     def __getitem__(self, idx):
-
+        image = Image.fromarray(np.uint8(self.images[idx]))
         if self.transform is not None:
-            tensor = self.transform(self.images[idx])
+            tensor = self.transform(image)
         else:
             tensor = torch.from_numpy(np.array(self.images[idx])).permute(2, 0, 1)
 
@@ -69,6 +75,9 @@ class ReceiptDataLoaderRam(Dataset):
         n3 = dist(*deltas[[4, 5, 6, 7]].reshape(2, 2))
         n4 = dist(*deltas[[6, 7, 0, 1]].reshape(2, 2))
 
+        #print("Delta: ", deltas)
+        #print("Edge: ", [n1, n2, n3, n4])
+
         return np.min([n1, n2, n3, n4])
 
     def load_train_data(self, idx):
@@ -77,10 +86,9 @@ class ReceiptDataLoaderRam(Dataset):
         boxes, texts = parse_annotation(self.annotaion_names[idx])
 
         image_resized, boxes, scale = resize_image_and_boxes(image, boxes, (512, 512))
-
         score_map, geo_map = get_score_values(image_resized, boxes, scale=0.25)
 
-        return image_resized, score_map, geo_map
+        return image_resized, score_map, geo_map, boxes
 
 
     def get_files_with_extension(self, dir, names, ext):

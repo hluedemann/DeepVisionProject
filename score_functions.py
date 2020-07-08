@@ -44,25 +44,33 @@ def get_score_values(image, boxes, scale=0.25):
 
         return distances
 
-    boxes = np.around(np.array(boxes)).astype(np.int32)
-    shrinked_boxes = np.around(np.array(get_shrinked_bboxes(boxes))).astype(np.int32)
+    #boxes = np.around(np.array(boxes)).astype(np.int32)
+    boxes = np.array(boxes)
+    #shrinked_boxes = np.around(np.array(get_shrinked_bboxes(boxes))).astype(np.int32)
+    shrinked_boxes = np.array(get_shrinked_bboxes(boxes))
 
     score_map = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
     geo_map = np.zeros((int(scale * image.size[1]), int(scale * image.size[0]), 8), dtype=np.float64)
 
+
     for i in range(boxes.shape[0]):
 
         shrinked_box = np.around(scale * shrinked_boxes[i]).astype(np.int32)
-        box = np.around(scale * boxes[i]).astype(np.int32)
+        # box = np.around(scale * boxes[i]).astype(np.int32)
+        #print("boxi: ", boxes[i])
+        box = scale * boxes[i]
 
-        mask  = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
+        mask = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
         cv2.fillPoly(mask, [shrinked_box], 1)
         score_map += mask
 
         idx = np.argwhere(mask == 1)
 
-        for x, y in idx:
-            geo_map[x, y] = get_distances((x, y), box)
+        for y, x in idx:
+            #print("Box", box)
+            #print(f"x/y: {x}, {y}")
+            #print("dist: ", get_distances((x, y), box))
+            geo_map[y, x] = get_distances((x, y), box)
 
         """    
         bounding_rectangle = get_bounding_rectangle(box)
@@ -100,12 +108,13 @@ def get_bounding_boxes_from_output(score_map, geo_map):
     :return: Restored boxes
     """
     index_text = np.argwhere(score_map > 0.9)
-    index_text = index_text[np.argsort(index_text[:, 0])]
+    #index_text = index_text[np.argsort(index_text[:, 0])]
+
 
     restored_bounding_boxes = np.zeros((index_text.shape[0], 8))
     for i in range(index_text.shape[0]):
-        indices = index_text[i]
-        restored_bounding_boxes[i] = restore_bounding_box(indices, geo_map[indices[0], indices[1], :])
+        indices = index_text[i]   # [y, x]
+        restored_bounding_boxes[i] = restore_bounding_box([indices[1], indices[0]], geo_map[indices[0], indices[1], :])
 
     boxes = np.zeros((restored_bounding_boxes.shape[0], 9))
     boxes[:, :8] = restored_bounding_boxes
@@ -128,12 +137,11 @@ if __name__ == "__main__":
     example, boxes, scale = resize_image_and_boxes(example, boxes, (512, 512))
     score_map, geo_map = get_score_values(example, boxes, scale=0.25)
 
-
-    for i in range(128):
-        for j in range(128):
-            print(geo_map[i, j])
+    add_bounding_box(example, convert_vert_list_to_tuple(boxes), "red")
+    example.show()
 
     restored_bboxes = get_bounding_boxes_from_output(score_map, geo_map)
+
 
     ## Resize image and plot bounding boxes
     new_x = np.around(int(0.25 * example.size[0]))

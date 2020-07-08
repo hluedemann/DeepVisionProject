@@ -20,7 +20,7 @@ if __name__ == "__main__":
     data_loader = DataLoader(data, batch_size=1, shuffle=False)
 
     east = EAST()
-    east.load_state_dict(torch.load("check_points/model_geo_loss_10.ckpt"))
+    east.load_state_dict(torch.load("check_points/model_geo_loss_99.ckpt"))
 
     example = Image.open(data.images_names[0])
     example = example.resize((512, 512))
@@ -46,6 +46,7 @@ if __name__ == "__main__":
         example.show()
 
         plot_predicted_score(score[0][0].detach().numpy())
+        print(restored_bboxes.shape)
 
         if step == 0:
             break

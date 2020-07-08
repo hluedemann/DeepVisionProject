@@ -119,7 +119,7 @@ class Output(nn.Module):
         score = self.sigmoid_score(score)
 
         quad = self.conv_quad(x)
-        quad = self.sigmoid_quad(quad)
+        #quad = self.sigmoid_quad(quad)
 
         return score, quad
 

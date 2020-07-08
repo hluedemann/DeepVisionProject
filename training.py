@@ -14,7 +14,7 @@ def train(dir):
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
     data = ReceiptDataLoaderRam("data/train_data", transform)
-    data_loader = DataLoader(data, batch_size=3, shuffle=True)
+    data_loader = DataLoader(data, batch_size=4, shuffle=True)
 
     criterion = CustomLoss()
 

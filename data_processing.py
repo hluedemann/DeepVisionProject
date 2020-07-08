@@ -154,7 +154,10 @@ def scale_bounding_box(boxes, scale):
     """
     b = np.array(np.copy(boxes)).reshape((-1, 4, 2))
 
-    return np.around(b * scale)
+    b[:, :, 0] *= scale[0]
+    b[:, :, 1] *= scale[1]
+
+    return b #* scale
 
 
 def resize_image_and_boxes(image, boxes, new_size):
