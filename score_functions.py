@@ -149,7 +149,6 @@ if __name__ == "__main__":
     example = example.resize((new_x, new_y))
     add_bounding_box(example, restored_bboxes[:, :8], "red")
     plot_image(example, "restored_boxes")
-    example.show()
 
     ## Resize bouning boxes and plot them
     restored_boxes_scales = scale_bounding_box(restored_bboxes[:, :8], 4/scale)
@@ -157,4 +156,3 @@ if __name__ == "__main__":
     example = Image.open(example_image)
     add_bounding_box(example, restored_boxes_scales, "red")
     plot_image(example, "resized_boxes")
-    example.show()

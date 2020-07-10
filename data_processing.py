@@ -46,12 +46,8 @@ def plot_image(image, outfile):
     :param image: Image to plot.
     :param outfile: File name for saving.
     """
-    fig, ax = plt.subplots(1)
-    plt.axis("off")
-    ax.imshow(image)
-    plt.savefig(f"output/{outfile}.png")
-    plt.show()
-
+    image.show()
+    image.save(f"output/{outfile}.pdf")
 
 def add_bounding_box(image, boxes, color):
     """ Add the bouning boxes to an image.
@@ -193,4 +189,3 @@ if __name__ == "__main__":
     shrinked_boxes = get_shrinked_bboxes(boxes)
     add_bounding_box(example, shrinked_boxes, "red")
     plot_image(example, "shrinked_boxes")
-    example.show()

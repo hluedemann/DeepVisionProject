@@ -25,15 +25,43 @@ cfg = {
 
 
 
-class Extractor(VGG):
+# class Extractor(VGG):
+#     def __init__(self, batch_norm=True, pretrained=True):
+#         super().__init__(make_layers(cfg['D'], batch_norm))
+#
+#         if pretrained:
+#             if batch_norm:
+#                 self.load_state_dict(model_zoo.load_url(model_urls['vgg16_bn']))
+#             else:
+#                 self.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
+#
+#
+#     def forward(self, x):
+#         f = []
+#         # we only need the output of the CNN
+#         for feature in self.features:
+#             x = feature(x)
+#             # check if we are after a pooling layer
+#             if isinstance(feature, nn.MaxPool2d):
+#                 f.append(x)
+#
+#         # return values after pooling 2-5
+#         return f[1:]
+
+
+# Colab Version
+class Extractor(nn.Module):
     def __init__(self, batch_norm=True, pretrained=True):
-        super().__init__(make_layers(cfg['D'], batch_norm))
+        super(Extractor, self).__init__()
+        vgg = VGG(make_layers(cfg['D'], batch_norm))
 
         if pretrained:
             if batch_norm:
-                self.load_state_dict(model_zoo.load_url(model_urls['vgg16_bn']))
+                vgg.load_state_dict(model_zoo.load_url(model_urls['vgg16_bn']))
             else:
-                self.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
+                vgg.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
+
+        self.features = vgg.features
 
 
     def forward(self, x):
