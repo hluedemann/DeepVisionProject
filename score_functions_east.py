@@ -108,8 +108,6 @@ def get_bounding_boxes_from_output(score_map, geo_map):
     :return: Restored boxes
     """
     index_text = np.argwhere(score_map > 0.9)
-    #index_text = index_text[np.argsort(index_text[:, 0])]
-
 
     restored_bounding_boxes = np.zeros((index_text.shape[0], 8))
     for i in range(index_text.shape[0]):

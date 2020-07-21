@@ -26,7 +26,7 @@ def text_detection(model, image_path):
 
   image_tensor = transform(image_resized)
   image_tensor = image_tensor.unsqueeze(0)
-  score, geo = east.forward(image_tensor)
+  score, geo = model.forward(image_tensor)
   restored_bboxes = get_bounding_boxes_from_output(score[0][0].detach().numpy(), geo[0].permute(1, 2, 0).detach().numpy())
   add_bounding_box(image_output, restored_bboxes[:,:8], "red")
   plot_image(image_output, "prediction")
@@ -39,6 +39,6 @@ def text_detection(model, image_path):
 
 if __name__ == "__main__":
 
-    east = load_model("check_points_colab/model_geo_loss_99.ckpt")
-    image_path = "data/task1_2_test/X00016469670.jpg"
+    east = load_model("check_points/model_east_250.ckpt")
+    image_path = "testImages/white.jpg"
     text_detection(east, image_path)

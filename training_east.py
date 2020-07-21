@@ -1,8 +1,8 @@
-from loss import *
+from loss_east import *
 from east_net import *
 
 from tqdm import tqdm
-from loss import *
+from loss_east import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Device : ", device)
@@ -11,10 +11,10 @@ print("Device : ", device)
 def train(dir):
 
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
     data = ReceiptDataLoaderRam("data/train_data", transform)
-    data_loader = DataLoader(data, batch_size=4, shuffle=True)
+    data_loader = DataLoader(data, batch_size=3, shuffle=True)
 
     criterion = CustomLoss()
 
@@ -23,7 +23,7 @@ def train(dir):
 
     optimizer = torch.optim.Adam(model.parameters(), 1e-3)
 
-    for epoch in tqdm(range(100), desc="Epoch"):
+    for epoch in tqdm(range(400), desc="Epoch"):
 
         model.train()
 
@@ -42,8 +42,12 @@ def train(dir):
             loss.backward()
             optimizer.step()
 
+        with open("check_points/loss_east.txt", "a") as f:
+            f.write(f"{epoch}, {epoch_loss}\n")
+
         print("### Epcoh Loss: ", epoch_loss)
-        torch.save(model.state_dict(), 'check_points/model_geo_loss_{}.ckpt'.format(epoch))
+        if epoch % 25 == 0:
+            torch.save(model.state_dict(), 'check_points/model_east_{}.ckpt'.format(epoch))
 
 if __name__ == "__main__":
 

@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from PIL import Image, ImageDraw
-import tqdm.auto as tqdm
 import os
 from shutil import copyfile
 
@@ -24,11 +23,11 @@ def parse_annotation(filename):
     :param filename: Folder containing the data
     :return: Returns coordinates of boxes in the form [(x1, y1), (x2, y2) ..] and text for each box.
     """
-    f = open(filename, "r")
+    f = open(filename, "r", encoding="utf8", errors='ignore')   ## TODO: Remove for text recognition -> Error in text of test data
     lines = f.readlines()
     boxes = []
     texts = []
-
+    # print(filename)
     for line in lines:
         split = line.split(",", 8)
         vertices = [(float(split[0]), float(split[1])), (float(split[2]), float(split[3])),
@@ -47,7 +46,8 @@ def plot_image(image, outfile):
     :param outfile: File name for saving.
     """
     image.show()
-    image.save(f"output/{outfile}.pdf")
+    image.save(f"output/{outfile}.png")
+
 
 def add_bounding_box(image, boxes, color):
     """ Add the bouning boxes to an image.
@@ -176,11 +176,12 @@ def resize_image_and_boxes(image, boxes, new_size):
 if __name__ == "__main__":
     clean_data("data/task1_train", "data/train_data")
 
-    example_image = "data/train_data/X00016469612.jpg"
-    example_annotation = "data/train_data/X00016469612.txt"
+    example_image = "data/test_data/X51009568881.jpg"
+    example_annotation = "data/test_data/X51009568881.txt"
 
     # Plot original boxes
     boxes, texts = parse_annotation(example_annotation)
+    print(texts)
     example = Image.open(example_image)
     add_bounding_box(example, boxes, "blue")
     plot_image(example, "original_boxes")

@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 
 import os
 
-from score_functions import *
+from score_functions_east import *
 from data_processing import *
 
 from tqdm import tqdm
@@ -22,36 +22,23 @@ class ReceiptDataLoaderRam(Dataset):
 
         self.new_size = (512, 512)
 
-        self.images = np.empty((len(self.images_names), *self.new_size, 3))
-        self.scores = np.empty((len(self.images_names), 128, 128))
-        self.geos = np.empty((len(self.images_names), 128, 128, 8))
-        self.shortest_edges = np.empty((len(self.images_names), 128, 128))
+        self.images = np.zeros((len(self.images_names), *self.new_size, 3))
+        self.scores = np.zeros((len(self.images_names), 128, 128))
+        self.geos = np.zeros((len(self.images_names), 128, 128, 8))
+        self.shortest_edges = np.zeros((len(self.images_names), 128, 128))
 
         print("Loading train data:")
         for idx in tqdm(range(len(self.images_names))):
 
             image, score, geo, boxes = self.load_train_data(idx)
 
-            for i in range(128):
-                for j in range(128):
+            mask = np.argwhere(score != 0.0)
+            deltas = geo[mask[:, 0], mask[:, 1], :]
 
-                    if score[i, j] == 0.0:
-                        continue
-                    deltas = geo[i, j, :]
-                    self.shortest_edges[idx, i, j] = self.get_shortest_edge(deltas)   ######### Todo: Check
-                    # print("shortest edge: ", self.shortest_edges[idx, i, j])
-                    """
-                    if self.shortest_edges[idx, i, j] == 0:
-                        print(f"deltas: {deltas}")
-                        print("no edge")
-                    else:
-                       print(f"right edge: {deltas}")
-                       print("shrtest edge: ", self.shortest_edges[idx, i, j])
-                    """
-            #break
             self.images[idx] = image
             self.scores[idx] = score
             self.geos[idx] = geo
+            self.shortest_edges[idx, mask[:, 0], mask[:, 1]] = self.get_shortest_edge(deltas)
 
     def __len__(self):
         return len(self.images_names)
@@ -68,15 +55,13 @@ class ReceiptDataLoaderRam(Dataset):
                torch.tensor(self.geos[idx]).permute(2, 0, 1).type(torch.FloatTensor),\
                torch.tensor(self.shortest_edges[idx]).type(torch.FloatTensor)
 
+
     def get_shortest_edge(self, deltas):
 
-        n1 = dist(*deltas[[0, 1, 2, 3]].reshape(2, 2))
-        n2 = dist(*deltas[[2, 3, 4, 5]].reshape(2, 2))
-        n3 = dist(*deltas[[4, 5, 6, 7]].reshape(2, 2))
-        n4 = dist(*deltas[[6, 7, 0, 1]].reshape(2, 2))
-
-        #print("Delta: ", deltas)
-        #print("Edge: ", [n1, n2, n3, n4])
+        n1 = np.sqrt((deltas[:, 0] - deltas[:, 2]) ** 2 + (deltas[:, 1] - deltas[:, 3]) ** 2)
+        n2 = np.sqrt((deltas[:, 2] - deltas[:, 4]) ** 2 + (deltas[:, 3] - deltas[:, 5]) ** 2)
+        n3 = np.sqrt((deltas[:, 4] - deltas[:, 6]) ** 2 + (deltas[:, 5] - deltas[:, 7]) ** 2)
+        n4 = np.sqrt((deltas[:, 6] - deltas[:, 0]) ** 2 + (deltas[:, 7] - deltas[:, 1]) ** 2)
 
         return np.min([n1, n2, n3, n4])
 
@@ -107,12 +92,8 @@ class ReceiptDataLoader(Dataset):
 
         self.names = os.listdir(dir)
         self.type = type
-
         self.images_names = self.get_files_with_extension(dir, self.names, ".jpg")
-
-        if self.type == "train":
-            self.annotaion_names = self.get_files_with_extension(dir, self.names, ".txt")
-
+        self.annotaion_names = self.get_files_with_extension(dir, self.names, ".txt")
         self.transform = transform
 
     def __len__(self):
@@ -123,8 +104,7 @@ class ReceiptDataLoader(Dataset):
         if self.type == "train":
             return self.get_train_data(idx)
         else:
-            t, s = self.get_test_data(idx)
-            return t, s
+            return self.get_test_data(idx)
 
     def get_train_data(self, idx):
 
@@ -145,7 +125,7 @@ class ReceiptDataLoader(Dataset):
     def get_test_data(self, idx):
 
         image = Image.open(self.images_names[idx]).convert("RGB")
-
+        boxes, texts = parse_annotation(self.annotaion_names[idx])
         image_resized = image.resize((512, 512))
 
         scale = np.zeros(2)
@@ -156,8 +136,8 @@ class ReceiptDataLoader(Dataset):
             tensor = self.transform(image_resized)
         else:
             tensor = torch.from_numpy(np.array(image_resized)).permute(2, 0, 1)
-
-        return tensor, scale
+        b = np.array(boxes).reshape((-1, 8))
+        return tensor, scale, b
 
     def get_files_with_extension(self, dir, names, ext):
 
@@ -180,10 +160,3 @@ if __name__ == "__main__":
     data_loader = DataLoader(data, batch_size=16, shuffle=False)
 
     image, score, geo, edge = next(iter(data_loader))
-
-    print(image.shape)
-    print(score.shape)
-    print(geo.shape)
-    print(edge.shape)
-
-    print(edge[5])

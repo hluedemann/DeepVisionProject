@@ -9,8 +9,8 @@ from torchvision.models.vgg import VGG, make_layers, model_urls
 from torchvision import transforms
 
 from data_processing import *
-from score_functions import *
-from data import *
+from score_functions_east import *
+from data_loader_east import *
 
 import os
 
@@ -22,34 +22,6 @@ cfg = {
 }
 
 
-
-
-
-# class Extractor(VGG):
-#     def __init__(self, batch_norm=True, pretrained=True):
-#         super().__init__(make_layers(cfg['D'], batch_norm))
-#
-#         if pretrained:
-#             if batch_norm:
-#                 self.load_state_dict(model_zoo.load_url(model_urls['vgg16_bn']))
-#             else:
-#                 self.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
-#
-#
-#     def forward(self, x):
-#         f = []
-#         # we only need the output of the CNN
-#         for feature in self.features:
-#             x = feature(x)
-#             # check if we are after a pooling layer
-#             if isinstance(feature, nn.MaxPool2d):
-#                 f.append(x)
-#
-#         # return values after pooling 2-5
-#         return f[1:]
-
-
-# Colab Version
 class Extractor(nn.Module):
     def __init__(self, batch_norm=True, pretrained=True):
         super(Extractor, self).__init__()
@@ -189,25 +161,8 @@ if __name__ == "__main__":
             print(score_map.shape)
             print(score_geo.shape)
 
-            # images = images.to(device)
-
             s, g = east.forward(images)
 
-    # r = net1.forward(images)
-    # print(np.array(r).shape)
-    # r = net2.forward(r)
-    # print(r.detach().numpy().shape)
-    # r, s = net3.forward(r)
-    # print(r.shape)
-    # print(s.shape)
-
-    # score, quad = east.forward(images)
-
-    # print(score.shape)
-    # print(quad.shape)
-    #
-
-    # net.forward(images)
 
 
 
