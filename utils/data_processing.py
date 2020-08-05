@@ -146,6 +146,7 @@ def resize_image_and_boxes(image, boxes, new_size):
     b = scale_bounding_box(boxes, scale)
     return resized_image, b, scale
 
+
 def get_files_with_extension(dir, names, ext):
     """ Get all the files in folder with specific extension.
 
@@ -163,6 +164,17 @@ def get_files_with_extension(dir, names, ext):
     return [os.path.join(dir, n) for n in list]
 
 
+def get_brectangle_from_bbox(bbox):
+    """ Convert bounding boxes into bounding rectangle.
+
+    :param bbox: Bounding box.
+    :return: bounding Rectangle.
+    """
+
+    bbox = np.array(bbox)
+    x_min, y_min = np.min(bbox, axis=0)
+    x_max, y_max = np.max(bbox, axis=0)
+    return (x_min, y_min, x_max, y_max)
 
 # if __name__ == "__main__":
 #     clean_data("data/task1_train", "data/train_data")
@@ -171,13 +183,13 @@ def get_files_with_extension(dir, names, ext):
 #     example_annotation = "data/test_data/X51009568881.txt"
 #
 #     Plot original boxes
-    # boxes, texts = parse_annotation(example_annotation)
-    # print(texts)
-    # example = Image.open(example_image)
-    # add_bounding_box(example, boxes, "blue")
-    # plot_image(example, "original_boxes")
-    #
-    # Plot schinked bboxes
-    # shrinked_boxes = get_shrinked_bboxes(boxes)
-    # add_bounding_box(example, shrinked_boxes, "red")
-    # plot_image(example, "shrinked_boxes")
+# boxes, texts = parse_annotation(example_annotation)
+# print(texts)
+# example = Image.open(example_image)
+# add_bounding_box(example, boxes, "blue")
+# plot_image(example, "original_boxes")
+#
+# Plot schinked bboxes
+# shrinked_boxes = get_shrinked_bboxes(boxes)
+# add_bounding_box(example, shrinked_boxes, "red")
+# plot_image(example, "shrinked_boxes")
