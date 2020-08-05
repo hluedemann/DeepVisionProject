@@ -1,21 +1,8 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision.transforms as transforms
-import torchvision.models as models
-
-from PIL import Image, ImageDraw
-import matplotlib.pyplot as plt
 import numpy as np
-import copy
-
 import cv2
 import lanms
 
-from data_processing import *
-
-
+from utils.data_processing import get_shrinked_bboxes, parse_annotation, resize_image_and_boxes
 
 
 def get_score_values(image, boxes, scale=0.25):
@@ -28,14 +15,6 @@ def get_score_values(image, boxes, scale=0.25):
     :return: Scaled score and geometry map.
     """
 
-    def get_bounding_rectangle(vertices):
-        vertices_T = vertices.T
-        x_min = np.min(vertices_T[1])
-        x_max = np.max(vertices_T[1])
-        y_min = np.min(vertices_T[0])
-        y_max = np.max(vertices_T[0])
-        return [[x_min, x_max], [y_min, y_max]]
-
     def get_distances(point, vertices):
         distances = np.zeros(8)
         for i in range(4):
@@ -44,20 +23,15 @@ def get_score_values(image, boxes, scale=0.25):
 
         return distances
 
-    #boxes = np.around(np.array(boxes)).astype(np.int32)
     boxes = np.array(boxes)
-    #shrinked_boxes = np.around(np.array(get_shrinked_bboxes(boxes))).astype(np.int32)
     shrinked_boxes = np.array(get_shrinked_bboxes(boxes))
 
     score_map = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
     geo_map = np.zeros((int(scale * image.size[1]), int(scale * image.size[0]), 8), dtype=np.float64)
 
-
     for i in range(boxes.shape[0]):
 
         shrinked_box = np.around(scale * shrinked_boxes[i]).astype(np.int32)
-        # box = np.around(scale * boxes[i]).astype(np.int32)
-        #print("boxi: ", boxes[i])
         box = scale * boxes[i]
 
         mask = np.zeros((int(scale * image.size[1]), int(scale * image.size[0])), dtype=np.float64)
@@ -67,31 +41,18 @@ def get_score_values(image, boxes, scale=0.25):
         idx = np.argwhere(mask == 1)
 
         for y, x in idx:
-            #print("Box", box)
-            #print(f"x/y: {x}, {y}")
-            #print("dist: ", get_distances((x, y), box))
             geo_map[y, x] = get_distances((x, y), box)
-
-        """    
-        bounding_rectangle = get_bounding_rectangle(box)
-        xmin, xmax = bounding_rectangle[0]
-        ymin, ymax = bounding_rectangle[1]
-        for x in np.arange(xmin, xmax):
-            for y in np.arange(ymin, ymax):
-                if score_map[x, y] == 1:
-                    geo_map[x, y] = get_distances((x, y), box)
-        """
-    """
-    print("######## Score count ##########")
-    print("score: ", np.argwhere(score_map == 1.0).shape)
-    print("geo: ", np.argwhere(np.sum(np.abs(geo_map), axis=2) != 0.0).shape)
-    print("###############################")
-    """
 
     return score_map, geo_map
 
 
 def restore_bounding_box(point, distances):
+    """ Recreate bounding boxes from offset values.
+
+    :param point: Point of the pixel.
+    :param distances: Offsets form point to four corners of bounding box.
+    :return: Return bounding box in the form [(x1, y1), (x2, y2),...]
+    """
     p1 = (point[0] - distances[0], point[1] - distances[1])
     p2 = (point[0] - distances[2], point[1] - distances[3])
     p3 = (point[0] - distances[4], point[1] - distances[5])
@@ -122,7 +83,7 @@ def get_bounding_boxes_from_output(score_map, geo_map):
     return boxes
 
 
-
+"""
 if __name__ == "__main__":
 
     example_image = "data/train_data/X00016469612.jpg"
@@ -154,3 +115,4 @@ if __name__ == "__main__":
     example = Image.open(example_image)
     add_bounding_box(example, restored_boxes_scales, "red")
     plot_image(example, "resized_boxes")
+"""

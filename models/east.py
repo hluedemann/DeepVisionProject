@@ -1,18 +1,10 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-import torch.nn.functional as F
-
-
 import torch.utils.model_zoo as model_zoo
 from torchvision.models.vgg import VGG, make_layers, model_urls
-from torchvision import transforms
+import torch.nn.functional as F
 
-from data_processing import *
-from score_functions_east import *
-from data_loader_east import *
-
-import os
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 cfg = {
     'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
@@ -34,7 +26,6 @@ class Extractor(nn.Module):
                 vgg.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
 
         self.features = vgg.features
-
 
     def forward(self, x):
         f = []
@@ -117,9 +108,7 @@ class Output(nn.Module):
     def forward(self, x):
         score = self.conv_score(x)
         score = self.sigmoid_score(score)
-
         quad = self.conv_quad(x)
-        #quad = self.sigmoid_quad(quad)
 
         return score, quad
 
@@ -135,6 +124,13 @@ class EAST(nn.Module):
         return self.output(self.merge(self.extractor(x)))
 
 
+def load_east_model(weight=None):
+    east = EAST()
+    if weight is not None:
+        east.load_state_dict(torch.load(weight, map_location=device))
+    return east
+
+"""
 if __name__ == "__main__":
 
     example_image = "data/train_data/X00016469612.jpg"
@@ -162,7 +158,7 @@ if __name__ == "__main__":
             print(score_geo.shape)
 
             s, g = east.forward(images)
-
+"""
 
 
 

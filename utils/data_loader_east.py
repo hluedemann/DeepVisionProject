@@ -1,23 +1,27 @@
-
-from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
-
+import numpy as np
 import os
-
-from score_functions_east import *
-from data_processing import *
-
+from PIL import Image
+import torch
+from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
+from utils.data_processing import parse_annotation, resize_image_and_boxes, get_files_with_extension
+from utils.score_functions_east import get_score_values
 
-class ReceiptDataLoaderRam(Dataset):
 
-    def __init__(self, dir, transform=None, type="train"):
+class ReceiptDataLoaderTrain(Dataset):
+    """ Data loader for the EAST model.
+
+    This data loader loads all the data into the RAM. Also all the data needed for the labels in computed beforehand
+    in order to allow faster training.
+    """
+
+    def __init__(self, dir, transform=None):
         super().__init__()
 
         self.names = os.listdir(dir)
-        self.images_names = self.get_files_with_extension(dir, self.names, ".jpg")
-        self.annotaion_names = self.get_files_with_extension(dir, self.names, ".txt")
+        self.images_names = get_files_with_extension(dir, self.names, ".jpg")
+        self.annotaion_names = get_files_with_extension(dir, self.names, ".txt")
         self.transform = transform
 
         self.new_size = (512, 512)
@@ -55,8 +59,12 @@ class ReceiptDataLoaderRam(Dataset):
                torch.tensor(self.geos[idx]).permute(2, 0, 1).type(torch.FloatTensor),\
                torch.tensor(self.shortest_edges[idx]).type(torch.FloatTensor)
 
-
     def get_shortest_edge(self, deltas):
+        """ Get the shortest edge of the bounding boxe.
+        This required for the normalization of the loss calculation.
+        :param deltas: Offsets to corners for every pixel.
+        :return: Shortest edge for every pixel.
+        """
 
         n1 = np.sqrt((deltas[:, 0] - deltas[:, 2]) ** 2 + (deltas[:, 1] - deltas[:, 3]) ** 2)
         n2 = np.sqrt((deltas[:, 2] - deltas[:, 4]) ** 2 + (deltas[:, 3] - deltas[:, 5]) ** 2)
@@ -76,24 +84,19 @@ class ReceiptDataLoaderRam(Dataset):
         return image_resized, score_map, geo_map, boxes
 
 
-    def get_files_with_extension(self, dir, names, ext):
-        list = []
-        for name in names:
-            e = os.path.splitext(name)[1]
-            if e == ext:
-                list.append(name)
-        list.sort()
-        return [os.path.join(dir, n) for n in list]
+class ReceiptDataLoaderEval(Dataset):
+    """ Data loader for the evaluation of the EAST model.
 
-class ReceiptDataLoader(Dataset):
-
+    This data loader loads the data on the fly. This is useful if not all the data is needed. It can also load the test
+    data for evaluation.
+    """
     def __init__(self, dir, transform=None, type="train"):
         super().__init__()
 
         self.names = os.listdir(dir)
         self.type = type
-        self.images_names = self.get_files_with_extension(dir, self.names, ".jpg")
-        self.annotaion_names = self.get_files_with_extension(dir, self.names, ".txt")
+        self.images_names = get_files_with_extension(dir, self.names, ".jpg")
+        self.annotation_names = get_files_with_extension(dir, self.names, ".txt")
         self.transform = transform
 
     def __len__(self):
@@ -109,7 +112,7 @@ class ReceiptDataLoader(Dataset):
     def get_train_data(self, idx):
 
         image = Image.open(self.images_names[idx]).convert("RGB")
-        boxes, texts = parse_annotation(self.annotaion_names[idx])
+        boxes, texts = parse_annotation(self.annotation_names[idx])
 
         image_resized, boxes, scale = resize_image_and_boxes(image, boxes, (512, 512))
 
@@ -123,9 +126,8 @@ class ReceiptDataLoader(Dataset):
         return tensor, torch.tensor(score_map), torch.tensor(geo_map).permute(2, 0, 1)
 
     def get_test_data(self, idx):
-
         image = Image.open(self.images_names[idx]).convert("RGB")
-        boxes, texts = parse_annotation(self.annotaion_names[idx])
+        boxes, texts = parse_annotation(self.annotation_names[idx])
         image_resized = image.resize((512, 512))
 
         scale = np.zeros(2)
@@ -139,24 +141,15 @@ class ReceiptDataLoader(Dataset):
         b = np.array(boxes).reshape((-1, 8))
         return tensor, scale, b
 
-    def get_files_with_extension(self, dir, names, ext):
 
-        list = []
-        for name in names:
-            e = os.path.splitext(name)[1]
-            if e == ext:
-                list.append(name)
-        list.sort()
-        return [os.path.join(dir, n) for n in list]
-
-
-
+"""
 if __name__ == "__main__":
 
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    data = ReceiptDataLoaderRam("data/train_data", transform)
+    data = ReceiptDataLoaderTrain("../data/train_data", transform)
     data_loader = DataLoader(data, batch_size=16, shuffle=False)
 
     image, score, geo, edge = next(iter(data_loader))
+"""

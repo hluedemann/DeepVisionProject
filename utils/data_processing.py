@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from PIL import Image, ImageDraw
 import os
@@ -7,8 +6,10 @@ from shutil import copyfile
 
 
 def clean_data(in_dir, out_dir):
-    """
-        Copy image from in_dir to out_dir and remove duplicates
+    """ Copy images from in_dir to out_dir and remove duplicates.
+
+    :param in_dir: Path to data.
+    :param out_dir: Output path of cleaned data.
     """
     names = os.listdir(in_dir)
     for name in names:
@@ -23,11 +24,11 @@ def parse_annotation(filename):
     :param filename: Folder containing the data
     :return: Returns coordinates of boxes in the form [(x1, y1), (x2, y2) ..] and text for each box.
     """
-    f = open(filename, "r", encoding="utf8", errors='ignore')   ## TODO: Remove for text recognition -> Error in text of test data
+    f = open(filename, "r", encoding="latin1")
     lines = f.readlines()
     boxes = []
     texts = []
-    # print(filename)
+
     for line in lines:
         split = line.split(",", 8)
         vertices = [(float(split[0]), float(split[1])), (float(split[2]), float(split[3])),
@@ -39,36 +40,8 @@ def parse_annotation(filename):
     return boxes, texts
 
 
-def plot_image(image, outfile):
-    """ Plot PIL image.
-
-    :param image: Image to plot.
-    :param outfile: File name for saving.
-    """
-    image.show()
-    image.save(f"output/{outfile}.png")
-
-
-def add_bounding_box(image, boxes, color):
-    """ Add the bouning boxes to an image.
-
-    :param image: Image to draw to.
-    :param boxes: Boxes to draw. Boxes can have the form [[(x1, y1), (x2, y2) ..],[..]] or
-                  [[x1, y1, x2, y2, ...], [...]. They can be either lists or numpy arrays.
-    :param color: Color to use for the boxes.
-    """
-
-    draw = ImageDraw.Draw(image)
-    for i in range(len(boxes)):
-        if isinstance(boxes[i], np.ndarray):
-            draw.polygon(boxes[i].tolist(), outline=color)
-        elif isinstance(boxes[i], list):
-            draw.polygon(boxes[i], outline=color)
-    del draw
-
-
 def dist(p1, p2):
-    """ Return the euclidean distance between two boints.
+    """ Return the euclidean distance between two points.
 
     :param p1: First point.
     :param p2: Second point.
@@ -83,6 +56,7 @@ def shrink_bbox(vertices):
     :param vertices: Box to shrink
     :return: Shrinked box
     """
+
     def move_points(p1, p2, r1, r2):
         x_dist = p2[0] - p1[0]
         y_dist = p2[1] - p1[1]
@@ -104,7 +78,7 @@ def shrink_bbox(vertices):
     r3 = min(dist(p3, p4), dist(p3, p2))
     r4 = min(dist(p4, p1), dist(p4, p3))
 
-    # next we need to dermine the longer edges
+    # next we need to determine the longer edges
     if dist(p1, p2) + dist(p3, p4) > dist(p1, p4) + dist(p2, p3):
         p1, p2 = move_points(p1, p2, r1, r2)
         p3, p4 = move_points(p3, p4, r3, r4)
@@ -153,7 +127,7 @@ def scale_bounding_box(boxes, scale):
     b[:, :, 0] *= scale[0]
     b[:, :, 1] *= scale[1]
 
-    return b #* scale
+    return b
 
 
 def resize_image_and_boxes(image, boxes, new_size):
@@ -172,21 +146,38 @@ def resize_image_and_boxes(image, boxes, new_size):
     b = scale_bounding_box(boxes, scale)
     return resized_image, b, scale
 
+def get_files_with_extension(dir, names, ext):
+    """ Get all the files in folder with specific extension.
 
-if __name__ == "__main__":
-    clean_data("data/task1_train", "data/train_data")
+    :param dir: Folder of data
+    :param names: Names of all the files in folder
+    :param ext: Extension.
+    :return: All files with specific extension.
+    """
+    list = []
+    for name in names:
+        e = os.path.splitext(name)[1]
+        if e == ext:
+            list.append(name)
+    list.sort()
+    return [os.path.join(dir, n) for n in list]
 
-    example_image = "data/test_data/X51009568881.jpg"
-    example_annotation = "data/test_data/X51009568881.txt"
 
-    # Plot original boxes
-    boxes, texts = parse_annotation(example_annotation)
-    print(texts)
-    example = Image.open(example_image)
-    add_bounding_box(example, boxes, "blue")
-    plot_image(example, "original_boxes")
 
+# if __name__ == "__main__":
+#     clean_data("data/task1_train", "data/train_data")
+#
+#     example_image = "data/test_data/X51009568881.jpg"
+#     example_annotation = "data/test_data/X51009568881.txt"
+#
+#     Plot original boxes
+    # boxes, texts = parse_annotation(example_annotation)
+    # print(texts)
+    # example = Image.open(example_image)
+    # add_bounding_box(example, boxes, "blue")
+    # plot_image(example, "original_boxes")
+    #
     # Plot schinked bboxes
-    shrinked_boxes = get_shrinked_bboxes(boxes)
-    add_bounding_box(example, shrinked_boxes, "red")
-    plot_image(example, "shrinked_boxes")
+    # shrinked_boxes = get_shrinked_bboxes(boxes)
+    # add_bounding_box(example, shrinked_boxes, "red")
+    # plot_image(example, "shrinked_boxes")

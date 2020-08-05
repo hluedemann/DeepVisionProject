@@ -1,15 +1,9 @@
 import torch
 import torch.nn as nn
 
-import numpy as np
-from sympy.utilities.iterables import multiset_permutations
-from torchvision import transforms
-
-from score_functions_east import *
-from data_processing import *
-from training_east import *
-
 from tqdm import tqdm
+
+
 
 def dist_tensor(p1, p2):
     """ Return the euclidean distance between two points.
@@ -32,6 +26,13 @@ def dist_tensor(p1, p2):
 
 
 class CustomLoss(nn.Module):
+    """ Loss for the EAST model.
+
+    The loss for the EAST model consists of two parts. The first component is the dice loss between the
+    predicted and true score values. The second component is computed on the true and predicted geometry values.
+    The exact formulas can be found in the paper.
+    """
+
     def __init__(self):
         super(CustomLoss, self).__init__()
 
@@ -48,17 +49,15 @@ class CustomLoss(nn.Module):
 
         return torch.mean(pix_loss)
 
-
-
     def dice_loss(self, score, score_pred):
         return 1.0 - (2.0 * torch.sum(score * score_pred) / (torch.sum(score) + torch.sum(score_pred)))
 
     def forward(self, score, pred_score, geo, pred_geo, edge):
 
+        # Check if the input is give in batches
         if len(score.shape) == 2:
             geo_loss = self.quad_geo_loss(score, geo, pred_geo)
             score_loss = self.dice_loss(score, pred_score)
-
         else:
             geo_loss = 0
             score_loss = 0
@@ -73,6 +72,7 @@ class CustomLoss(nn.Module):
         return score_loss + geo_loss
 
 
+"""
 if __name__ == "__main__":
 
     transform = transforms.Compose([transforms.ToTensor(),
@@ -93,3 +93,4 @@ if __name__ == "__main__":
         total_loss += loss.forward(score_map, score_map_pred, geo_map, geo_map_pred, edge)
 
     print("loss", total_loss)
+"""

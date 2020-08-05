@@ -1,29 +1,33 @@
-from loss_east import *
-from east_net import *
+import torch
+from torchvision import transforms
+from torch.utils.data import DataLoader
+
+from utils.data_loader_east import ReceiptDataLoaderTrain
+from utils.loss_east import CustomLoss
+from models.east import EAST, load_east_model
 
 from tqdm import tqdm
-from loss_east import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Device : ", device)
 
 
-def train(dir):
+def train(dir, epochs=100, check_point=None, out="check_points_east"):
 
     transform = transforms.Compose([transforms.ToTensor(),
                                      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-    data = ReceiptDataLoaderRam("data/train_data", transform)
+    data = ReceiptDataLoaderTrain(dir, transform)
     data_loader = DataLoader(data, batch_size=3, shuffle=True)
 
     criterion = CustomLoss()
 
-    model = EAST()
+    model = load_east_model(check_point)
     model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), 1e-3)
 
-    for epoch in tqdm(range(400), desc="Epoch"):
+    for epoch in tqdm(range(epochs), desc="Epoch"):
 
         model.train()
 
@@ -42,15 +46,11 @@ def train(dir):
             loss.backward()
             optimizer.step()
 
-        with open("check_points/loss_east.txt", "a") as f:
-            f.write(f"{epoch}, {epoch_loss}\n")
-
         print("### Epcoh Loss: ", epoch_loss)
-        if epoch % 25 == 0:
-            torch.save(model.state_dict(), 'check_points/model_east_{}.ckpt'.format(epoch))
+        torch.save(model.state_dict(), "model_east_{}.ckpt".format(epoch))
+
 
 if __name__ == "__main__":
 
     dir = "data/train_data"
-
     train(dir)
