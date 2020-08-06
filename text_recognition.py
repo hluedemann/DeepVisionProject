@@ -30,6 +30,7 @@ def text_recognition_gt_bboxes(model, image_path, annotation_path):
 
     for (index, box) in enumerate(boxes):
         brectangle = get_brectangle_from_bbox(box)
+        print(brectangle)
         image_crop = image.crop(brectangle)
         image_crop = resize_image_with_aspect_ratio(image_crop, new_size)
 
@@ -52,7 +53,6 @@ def text_recognition_gt_bboxes(model, image_path, annotation_path):
 
 
 if __name__ == "__main__":
-    model_path_east = "check_points_final/model_east_395.ckpt"
     model_path_recognition = "check_points_final/model_rcnn_64_190.ckpt"
 
     image_path = "data/test_data/X51005605287.jpg"
