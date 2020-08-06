@@ -70,27 +70,3 @@ class CustomLoss(nn.Module):
         geo_loss /= score.shape[0]
 
         return score_loss + geo_loss
-
-
-"""
-if __name__ == "__main__":
-
-    transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    data = ReceiptDataLoaderRam("data/train_data", transform)
-    data_loader = DataLoader(data, batch_size=8, shuffle=False)
-
-    total_loss = 0
-
-    loss = CustomLoss()
-
-    for step, (images, score_map, geo_map, edge) in enumerate(tqdm(data_loader, desc='Batch')):
-
-        score_map_pred = score_map + np.random.normal(0.0, 2.0, size=score_map.shape)
-        geo_map_pred = geo_map + np.random.normal(0.0, 2.0, size=geo_map.shape)
-
-        total_loss += loss.forward(score_map, score_map_pred, geo_map, geo_map_pred, edge)
-
-    print("loss", total_loss)
-"""

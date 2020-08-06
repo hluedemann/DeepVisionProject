@@ -128,11 +128,3 @@ def plot_loss_text_recognition():
     plt.legend()
     plt.savefig("output/loss_recognition_models.pdf")
     plt.show()
-
-
-# if __name__ == "__main__":
-#
-#     plot_loss_text_recognition()
-#     plot_scores_text_recognition()
-#     plot_loss_east("check_points_east/loss_east.txt", "output/loss_east.pdf")
-#     plot_score_east("check_points_east/eval.txt", "output/IoU.pdf")

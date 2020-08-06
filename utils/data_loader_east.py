@@ -141,15 +141,3 @@ class ReceiptDataLoaderEval(Dataset):
         b = np.array(boxes).reshape((-1, 8))
         return tensor, scale, b
 
-
-"""
-if __name__ == "__main__":
-
-    transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    data = ReceiptDataLoaderTrain("../data/train_data", transform)
-    data_loader = DataLoader(data, batch_size=16, shuffle=False)
-
-    image, score, geo, edge = next(iter(data_loader))
-"""

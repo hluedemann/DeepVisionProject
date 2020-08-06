@@ -81,38 +81,3 @@ def get_bounding_boxes_from_output(score_map, geo_map):
     boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), 0.2)
 
     return boxes
-
-
-"""
-if __name__ == "__main__":
-
-    example_image = "data/train_data/X00016469612.jpg"
-    example_annotation = "data/train_data/X00016469612.txt"
-
-    example = Image.open(example_image)
-
-    boxes, texts = parse_annotation(example_annotation)
-
-    example, boxes, scale = resize_image_and_boxes(example, boxes, (512, 512))
-    score_map, geo_map = get_score_values(example, boxes, scale=0.25)
-
-    add_bounding_box(example, convert_vert_list_to_tuple(boxes), "red")
-    example.show()
-
-    restored_bboxes = get_bounding_boxes_from_output(score_map, geo_map)
-
-
-    ## Resize image and plot bounding boxes
-    new_x = np.around(int(0.25 * example.size[0]))
-    new_y = np.around(int(0.25 * example.size[1]))
-    example = example.resize((new_x, new_y))
-    add_bounding_box(example, restored_bboxes[:, :8], "red")
-    plot_image(example, "restored_boxes")
-
-    ## Resize bouning boxes and plot them
-    restored_boxes_scales = scale_bounding_box(restored_bboxes[:, :8], 4/scale)
-    restored_boxes_scales = restored_boxes_scales.reshape(-1, 8)
-    example = Image.open(example_image)
-    add_bounding_box(example, restored_boxes_scales, "red")
-    plot_image(example, "resized_boxes")
-"""

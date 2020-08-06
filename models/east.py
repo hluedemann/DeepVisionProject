@@ -130,38 +130,6 @@ def load_east_model(weight=None):
         east.load_state_dict(torch.load(weight, map_location=device))
     return east
 
-"""
-if __name__ == "__main__":
-
-    example_image = "data/train_data/X00016469612.jpg"
-    example_annotation = "data/train_data/X00016469612.txt"
-
-    transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    data = ReceiptDataLoader("data/train_data", transform)
-    data_loader = DataLoader(data, batch_size=16, shuffle=True)
-
-
-    east = EAST()
-    # east.to(device)
-
-    with torch.no_grad():
-        for step, data in enumerate(data_loader):
-
-            print(step)
-            images, score_map, score_geo = data
-
-            print(images.shape)
-            print(score_map.shape)
-            print(score_geo.shape)
-
-            s, g = east.forward(images)
-"""
-
-
-
 
 
 
