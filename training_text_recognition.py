@@ -1,10 +1,21 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script implements a function to train the text recognition models.
+###################################################################################################
+
+
 import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from models.text_recognition_net import DenseNet, CRNN, load_text_recognition_model
+from models.text_recognition_net import load_text_recognition_model
 from utils.data_loader_text_recognition import ReceiptDataLoaderTextRecognition
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,9 +41,10 @@ def train_text_recognition(data_loader, model_name="DenseNetLinear", model_path=
     model = load_text_recognition_model(model_name, model_path, out_put_size)
     model.to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), 1e-3)
+    lr = 1e-6
+    optimizer = torch.optim.Adam(model.parameters(), lr)
 
-    for epoch in tqdm(range(250), desc="Epoch"):
+    for epoch in tqdm(range(30, 60), desc="Epoch"):
 
         model.train()
 
@@ -67,11 +79,11 @@ def train_text_recognition(data_loader, model_name="DenseNetLinear", model_path=
         print("### Epoch Loss: ", epoch_loss)
         torch.save(model.state_dict(), "check_points_text_recognition/model_{}_{}_{}.ckpt".format(model_name, out_put_size, epoch))
 
+        with open(f"check_points_text_recognition/loss_{model_name}.txt", "a+") as f:
+            f.write(f"{epoch}, {epoch_loss}\n")
+
 
 if __name__ == "__main__":
-
-    example_image = "data/train_data/X00016469612.jpg"
-    example_annotation = "data/train_data/X00016469612.txt"
 
     transform = transforms.Compose([transforms.ToTensor()])
 
@@ -80,6 +92,6 @@ if __name__ == "__main__":
     data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
     train_text_recognition(data_loader,
-                           model_name="CRNN",
+                           model_name="DenseNetRNN",
                            model_path=None,
                            out_put_size=64)

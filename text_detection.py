@@ -1,3 +1,14 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script performs text detection with a trained EAST model.
+###################################################################################################
+
+
 import numpy as np
 from PIL import Image
 import torch
@@ -46,8 +57,9 @@ def text_detection(model, image_path):
 
 
 if __name__ == "__main__":
-    east = load_east_model(weight="check_points_for_loss/check_points_east/model_east_380.ckpt")
-    image_path = "data/train_data/X00016469619.jpg"
+    east = load_east_model(weight="trained_models/model_east.ckpt")
+    # image_path = "data/test_data/X51006438346.jpg"
+    image_path = "testImages/white.jpg"
     bboxes = text_detection(east, image_path)
 
     # Plot the detected bounding boxes

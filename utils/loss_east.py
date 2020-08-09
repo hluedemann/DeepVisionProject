@@ -1,8 +1,16 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script implements the Loss for the EAST model.
+###################################################################################################
+
+
 import torch
 import torch.nn as nn
-
-from tqdm import tqdm
-
 
 
 def dist_tensor(p1, p2):

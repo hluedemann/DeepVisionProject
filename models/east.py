@@ -1,3 +1,15 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Implementation of the EAST model.
+###################################################################################################
+
+
+
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo

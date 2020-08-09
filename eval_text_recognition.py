@@ -1,3 +1,16 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script implements functions to evaluate the performance of the text recognition models
+#   on the test data set.
+###################################################################################################
+
+
+
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -200,6 +213,8 @@ def eval_rocognition_model(model, data):
     all_pred_text = []
     all_true_text = []
 
+    num_boxes = 0
+
     print("Predicting text of test data")
     with torch.no_grad():
         for i in tqdm(range(num_data)):
@@ -222,15 +237,16 @@ def eval_rocognition_model(model, data):
                 log_preds = model(image_tensor).permute(1, 0, 2)
                 prediction = decode_ctc_output(log_preds)
                 pred_text.append(prediction)
+                num_boxes += 1
 
             all_pred_text.append(pred_text)
             all_true_text.append(texts)
-
+        print("Number test boxes: ", num_boxes)
         return all_true_text, all_pred_text
 
 
 if __name__ == "__main__":
-    model_path_east = "check_points_east/model_east_200.ckpt"
+
     path = "data/test_data/"
 
     transform = transforms.Compose([transforms.ToTensor(),
@@ -246,7 +262,7 @@ if __name__ == "__main__":
 
 
 
-    model_path = "check_points_final/model_rcnn_64_190.ckpt"
+    model_path = "check_points_text_recognition/model_CRNN_64_70.ckpt"
     model = load_text_recognition_model(model_name="CRNN", model_weights=model_path, out_put_size=64)
     all_true_text, all_pred_text = eval_rocognition_model(model, data)
 

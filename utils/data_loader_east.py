@@ -1,8 +1,19 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Data loader for the training and evaluation of the EAST model.
+###################################################################################################
+
+
 import numpy as np
 import os
 from PIL import Image
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from utils.data_processing import parse_annotation, resize_image_and_boxes, get_files_with_extension

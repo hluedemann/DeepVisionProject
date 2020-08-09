@@ -1,3 +1,26 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Script to perform text extraction on given receipt image. This file combines the output
+#   results from the text detection using the EAST model and the text recognition to output
+#   all the text on the given image. For the text recognition model a few different options
+#   can be specified.
+#
+# Usage:
+#   Run this script from the command line (add -h for available options)
+#
+#   python receipt_pipeline.py -h
+#
+# Example:
+#   python receipt_pipeline.py path_to_image
+###################################################################################################
+
+
+
 from PIL import Image
 from torchvision import transforms
 import argparse

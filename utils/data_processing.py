@@ -1,6 +1,16 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Utility functions for data processing.
+###################################################################################################
+
+
 import numpy as np
 
-from PIL import Image, ImageDraw
 import os
 from shutil import copyfile
 

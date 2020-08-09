@@ -1,3 +1,15 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Data loader for the training and evaluation of the text recognition models.
+###################################################################################################
+
+
+
 import numpy as np
 from PIL import Image
 import os
@@ -6,22 +18,8 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from trdg.generators import GeneratorFromDict
 
-from utils.data_processing import get_files_with_extension, parse_annotation
+from utils.data_processing import get_files_with_extension, parse_annotation, get_brectangle_from_bbox
 from models.text_recognition_net import char_list
-
-
-def get_brectangle_from_bbox(bbox):
-    """ Get bounding rectangle from bounding box.
-
-    :param bbox: Bounding box.
-    :return: Bounding rectangle.
-    """
-
-    bbox = np.array(bbox)
-    x_min, y_min = np.min(bbox, axis=0)
-    x_max, y_max = np.max(bbox, axis=0)
-
-    return (x_min, y_min, x_max, y_max)
 
 
 def add_padding_to_image(image, new_size):

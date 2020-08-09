@@ -1,3 +1,15 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script performs text recognition on an image with the provides ground truth text bounding
+#   boxes.
+###################################################################################################
+
+
 import matplotlib.pyplot as plt
 from torchvision import transforms
 from PIL import Image
@@ -53,12 +65,12 @@ def text_recognition_gt_bboxes(model, image_path, annotation_path):
 
 
 if __name__ == "__main__":
-    model_path_recognition = "check_points_final/model_rcnn_64_190.ckpt"
+    model_path_recognition = "check_points_for_loss/dense_64/model_task2_Dense_long_5.ckpt"
 
     image_path = "data/test_data/X51005605287.jpg"
     annotation_path = "data/test_data/X51005605287.txt"
 
-    model = load_text_recognition_model(model_name="CRNN", model_weights=model_path_recognition, out_put_size=64)
+    model = load_text_recognition_model(model_name="DenseNetLinear", model_weights=model_path_recognition, out_put_size=64)
     true_text, pred_text = text_recognition_gt_bboxes(model, image_path, annotation_path)
 
     acc, lev = get_prediction_metrics([true_text], [pred_text])

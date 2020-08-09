@@ -1,3 +1,14 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script implements a function to train the EAST model for text detection.
+###################################################################################################
+
+
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader

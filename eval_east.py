@@ -1,3 +1,15 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   This script implements functions to evaluate the performance of the EAST model on the test
+#   data set.
+###################################################################################################
+
+
 import numpy as np
 import torch
 from torchvision import transforms

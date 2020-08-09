@@ -1,3 +1,15 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Utility functions to plot the results of the text detection and text recognition.
+###################################################################################################
+
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw

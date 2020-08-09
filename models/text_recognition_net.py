@@ -1,9 +1,22 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Implementation of the text recognition models.
+###################################################################################################
+
+
+
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
 
 char_list = "abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:,/\*!&?%()-_ "
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class _DenseLayer(nn.Module):
 

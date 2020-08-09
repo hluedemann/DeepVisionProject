@@ -1,3 +1,14 @@
+###################################################################################################
+# Deep Vision Project: Text Extraction from Receipts
+#
+# Authors: Benjamin Maier and Hauke Lüdemann
+# Data: 2020
+#
+# Description of file:
+#   Utility functions for the training of the EAST model.
+###################################################################################################
+
+
 import numpy as np
 import cv2
 import lanms
