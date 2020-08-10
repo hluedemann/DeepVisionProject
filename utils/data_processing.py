@@ -185,3 +185,12 @@ def get_brectangle_from_bbox(bbox):
     x_min, y_min = np.min(bbox, axis=0)
     x_max, y_max = np.max(bbox, axis=0)
     return (x_min, y_min, x_max, y_max)
+
+
+if __name__ == "__main__":
+
+    if not os.path.exists("data/train_data"):
+        os.mkdir("data/train_data")
+
+    clean_data("data/task1_train", "data/train_data")
+    

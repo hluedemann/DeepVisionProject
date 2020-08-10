@@ -20,3 +20,11 @@ you want to use a different model run
 python receipt_pipeline.py -h
 ```
 to see available options.
+
+## Data
+The data needs to downloaded from https://rrc.cvc.uab.es/?ch=13. For this an account is required.  
+After the data is extracted run 
+```shell script
+python utils.data_processing.py
+```
+This will create the new folder `train_data` in `data`. This is required because some of the train images are duplicated.
